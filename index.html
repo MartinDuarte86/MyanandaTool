@@ -108,11 +108,14 @@
 
         .btn-add { background: #dcfce7; color: #166534; width: 100%; margin-top: 10px; }
         .btn-remove { background: #fee2e2; color: #991b1b; padding: 8px; }
+        .btn-primary { background: var(--accent); color: white; width: 100%; margin-top: 10px; }
+        .btn-action { background: #e0f2fe; color: #0369a1; width: 100%; margin-top: 15px; }
 
         .results-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
             gap: 15px;
+            margin-bottom: 20px;
         }
 
         .result-card {
@@ -121,6 +124,9 @@
             padding: 15px;
             border-radius: 8px;
             box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
         }
 
         .result-card h3 {
@@ -143,10 +149,89 @@
             font-weight: 700;
             background: #e0f2fe;
             color: #0369a1;
+            margin-bottom: 5px;
+        }
+
+        /* Estilos específicos para la Etiqueta */
+        .seccion-etiqueta {
+            display: none;
+            margin-top: 20px;
+            background: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            border: 2px dashed #cbd5e1;
+            text-align: center;
+        }
+
+        .printable-label {
+            border: 2px solid #000;
+            padding: 20px;
+            width: 100%;
+            max-width: 400px;
+            margin: 0 auto;
+            text-align: left;
+            background: #fff;
+            color: #000;
+            font-family: monospace;
+        }
+
+        .printable-label h2 {
+            text-align: center;
+            border-bottom: 2px solid #000;
+            padding-bottom: 10px;
+            margin-top: 0;
+        }
+
+        .label-items {
+            margin-bottom: 20px;
+            border-bottom: 1px dashed #000;
+            padding-bottom: 10px;
+        }
+
+        .label-total {
+            font-size: 1.5rem;
+            font-weight: bold;
+            text-align: right;
+        }
+
+        .barcode-placeholder {
+            height: 40px;
+            background: repeating-linear-gradient(
+                90deg,
+                #000,
+                #000 2px,
+                #fff 2px,
+                #fff 4px,
+                #000 4px,
+                #000 8px,
+                #fff 8px,
+                #fff 10px
+            );
+            margin: 20px 0;
         }
 
         @media (max-width: 480px) {
             .product-header { grid-template-columns: 1fr; }
+        }
+
+        /* Reglas de impresión para que solo salga la etiqueta física */
+        @media print {
+            body * {
+                visibility: hidden;
+            }
+            .printable-label, .printable-label * {
+                visibility: visible;
+            }
+            .printable-label {
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 100%;
+                max-width: none;
+                border: none;
+                padding: 10px;
+            }
+            @page { margin: 0; }
         }
     </style>
 </head>
@@ -155,17 +240,18 @@
 <div class="container">
     <header>
         <h1 id="displayTitulo">Cotizador de Productos</h1>
-        <p>Generador de escalas de precios y descuentos</p>
+        <p>Generador de escalas de precios y creaci&oacute;n de etiquetas</p>
     </header>
 
     <div class="card">
+        <h2 style="margin-top: 0; font-size: 1.25rem;">1. Configurar Producto y Escalas</h2>
         <div class="product-header">
             <div>
-                <label>Nombre del Producto / Proyecto</label>
-                <input type="text" id="nombreProd" placeholder="Ej: Servicio de Ingesta AWS" oninput="actualizarUI()">
+                <label>Nombre del Producto / Proyecto (Para Cotizar)</label>
+                <input type="text" id="nombreProd" placeholder="Ej: Playera Estampada" oninput="actualizarUI()">
             </div>
             <div>
-                <label>Precio Unitario ($)</label>
+                <label>Precio Unitario Base ($)</label>
                 <input type="number" id="precioBase" value="1200" oninput="actualizarUI()">
             </div>
         </div>
@@ -180,6 +266,11 @@
             </thead>
             <tbody id="cuerpoTabla">
                 <tr>
+                    <td><input type="number" class="cant" value="1" oninput="actualizarUI()"></td>
+                    <td><input type="number" class="desc" value="0" oninput="actualizarUI()"></td>
+                    <td><button class="btn btn-remove" onclick="eliminarFila(this)">✕</button></td>
+                </tr>
+                <tr>
                     <td><input type="number" class="cant" value="5" oninput="actualizarUI()"></td>
                     <td><input type="number" class="desc" value="10" oninput="actualizarUI()"></td>
                     <td><button class="btn btn-remove" onclick="eliminarFila(this)">✕</button></td>
@@ -189,11 +280,60 @@
         <button class="btn btn-add" onclick="agregarFila()">+ Añadir Escala de Volumen</button>
     </div>
 
-    <div id="resultadosContenedor" class="results-grid">
+    <!-- Resultados dinámicos -->
+    <div id="resultadosContenedor" class="results-grid"></div>
+
+    <!-- Sección de Carrito / Tabla de Acopio -->
+    <div class="card" id="seccionAcopio">
+        <h2 style="margin-top: 0; font-size: 1.25rem;">2. Items para la Etiqueta</h2>
+        <p style="font-size: 0.875rem; color: var(--secondary); margin-bottom: 10px;">
+            Agrega productos usando los botones azules de las tarjetas de arriba. Puedes cambiar el nombre del producto en cualquier momento para agregar algo diferente.
+        </p>
+        <table>
+            <thead>
+                <tr>
+                    <th>Detalle</th>
+                    <th>Subtotal</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody id="cuerpoCarrito">
+                <!-- Se rellena con JS -->
+            </tbody>
+            <tfoot>
+                <tr>
+                    <td style="font-weight: bold; text-align: right;">TOTAL:</td>
+                    <td id="carritoTotal" style="font-weight: bold; font-size: 1.1rem;">$0</td>
+                    <td></td>
+                </tr>
+            </tfoot>
+        </table>
+        <button class="btn btn-primary" onclick="generarEtiqueta()">Generar Etiqueta Final</button>
+    </div>
+
+    <!-- Etiqueta generada (Oculta por defecto) -->
+    <div id="seccionEtiqueta" class="seccion-etiqueta">
+        <h3 style="margin-top: 0;">Vista Previa de Etiqueta</h3>
+        <div class="printable-label" id="printableArea">
+            <h2 id="etiquetaEmpresa">STORE LABEL</h2>
+            <div class="barcode-placeholder"></div>
+            <div class="label-items" id="etiquetaItems">
+                <!-- Items dinámicos -->
+            </div>
+            <div class="label-total" id="etiquetaTotal">$0</div>
+            <div style="font-size: 0.7rem; text-align: center; margin-top: 15px; color: #666;">
+                ¡Gracias por su compra!
+            </div>
         </div>
+        <button class="btn btn-primary" style="max-width: 200px; margin-top: 20px;" onclick="imprimirEtiqueta()">🖨️ Imprimir Etiqueta</button>
+    </div>
+
 </div>
 
 <script>
+    // ESTADO DEL CARRITO
+    let carrito = [];
+
     function agregarFila() {
         const tbody = document.getElementById('cuerpoTabla');
         const nuevaFila = document.createElement('tr');
@@ -212,8 +352,9 @@
     }
 
     function actualizarUI() {
-        const nombre = document.getElementById('nombreProd').value || "Cotizador de Productos";
-        document.getElementById('displayTitulo').innerText = nombre;
+        const nombreInput = document.getElementById('nombreProd').value;
+        const nombre = nombreInput || "Producto Generico";
+        document.getElementById('displayTitulo').innerText = nombreInput ? "Cotizando: " + nombreInput : "Cotizador de Productos";
 
         const precioBase = parseFloat(document.getElementById('precioBase').value) || 0;
         const filas = document.querySelectorAll('#cuerpoTabla tr');
@@ -234,20 +375,97 @@
                 const card = document.createElement('div');
                 card.className = 'result-card';
                 card.innerHTML = `
-                    <div class="badge">Ahorro: ${desc}%</div>
-                    <h3>Combo x ${cant}</h3>
-                    <div class="price-main">$${total.toLocaleString('es-AR')}</div>
-                    <div style="font-size: 0.85rem; color: var(--secondary)">
-                        <strong>Precio Unitario:</strong> $${unitario.toLocaleString('es-AR')}<br>
-                        <strong>Ahorro total:</strong> $${ahorro.toLocaleString('es-AR')}
+                    <div>
+                        <div class="badge">Ahorro: ${desc}%</div>
+                        <h3>Combo x ${cant}</h3>
+                        <div class="price-main">$${total.toLocaleString('es-AR')}</div>
+                        <div style="font-size: 0.85rem; color: var(--secondary)">
+                            <strong>Precio Unitario:</strong> $${unitario.toLocaleString('es-AR')}<br>
+                            <strong>Ahorro total:</strong> $${ahorro.toLocaleString('es-AR')}
+                        </div>
                     </div>
+                    <button class="btn btn-action" onclick="agregarAlCarrito('${nombre}', ${cant}, ${total})">➕ Añadir a Etiqueta</button>
                 `;
                 contenedor.appendChild(card);
             }
         });
     }
 
-    window.onload = actualizarUI;
+    // LÓGICA DEL CARRITO
+    function agregarAlCarrito(nombre, cantidad, totalConst) {
+        carrito.push({ nombre: nombre, cant: cantidad, total: totalConst });
+        renderizarCarrito();
+    }
+
+    function eliminarDelCarrito(index) {
+        carrito.splice(index, 1);
+        renderizarCarrito();
+    }
+
+    function renderizarCarrito() {
+        const tbody = document.getElementById('cuerpoCarrito');
+        tbody.innerHTML = '';
+        let granTotal = 0;
+        
+        if(carrito.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="3" style="text-align:center; color:#94a3b8;">Aún no hay items agregados.</td></tr>';
+            document.getElementById('carritoTotal').innerText = '$0';
+            return;
+        }
+
+        carrito.forEach((item, index) => {
+            granTotal += item.total;
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td><strong>${item.cant}x</strong> ${item.nombre}</td>
+                <td>$${item.total.toLocaleString('es-AR')}</td>
+                <td><button class="btn btn-remove" style="padding: 4px 8px; font-size: 0.7rem;" onclick="eliminarDelCarrito(${index})">✕</button></td>
+            `;
+            tbody.appendChild(tr);
+        });
+        
+        document.getElementById('carritoTotal').innerText = '$' + granTotal.toLocaleString('es-AR');
+        
+        // Ocultar etiqueta si se modifica el carrito
+        document.getElementById('seccionEtiqueta').style.display = 'none';
+    }
+
+    // LÓGICA DE LA ETIQUETA
+    function generarEtiqueta() {
+        if (carrito.length === 0) {
+            alert("Agrega al menos un ítem a la etiqueta antes de generar.");
+            return;
+        }
+
+        const itemsCont = document.getElementById('etiquetaItems');
+        itemsCont.innerHTML = '';
+        let granTotal = 0;
+        
+        carrito.forEach((item) => {
+            granTotal += item.total;
+            itemsCont.innerHTML += `
+                <div style="display:flex; justify-content:space-between; margin-bottom: 8px;">
+                    <span style="padding-right: 15px;">${item.cant}x ${item.nombre}</span>
+                    <span>$${item.total.toLocaleString('es-AR')}</span>
+                </div>
+            `;
+        });
+        
+        document.getElementById('etiquetaTotal').innerText = '$' + granTotal.toLocaleString('es-AR');
+        document.getElementById('seccionEtiqueta').style.display = 'block';
+        
+        // Scroll hacia la etiqueta
+        document.getElementById('seccionEtiqueta').scrollIntoView({ behavior: 'smooth' });
+    }
+
+    function imprimirEtiqueta() {
+        window.print();
+    }
+
+    window.onload = function() {
+        actualizarUI();
+        renderizarCarrito();
+    };
 </script>
 
 </body>

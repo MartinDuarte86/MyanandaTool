@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cotizador de Combos | Data Architecture Solutions</title>
+    <style>
+        :root {
+            --primary: #1e40af;
+            --secondary: #64748b;
+            --accent: #3b82f6;
+            --bg: #f1f5f9;
+            --card: #ffffff;
+            --text: #0f172a;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            margin: 0;
+            padding: 10px;
+            line-height: 1.5;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        header {
+            background: var(--primary);
+            color: white;
+            padding: 2rem 1rem;
+            border-radius: 12px;
+            text-align: center;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+        }
+
+        .card {
+            background: var(--card);
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+
+        .product-header {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            font-size: 0.875rem;
+            font-weight: 600;
+            margin-bottom: 5px;
+            color: var(--secondary);
+        }
+
+        input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 1rem;
+            box-sizing: border-box;
+            transition: border-color 0.2s;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: var(--accent);
+            ring: 2px var(--accent);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th {
+            text-align: left;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            color: var(--secondary);
+            padding: 10px;
+            border-bottom: 2px solid #f1f5f9;
+        }
+
+        td {
+            padding: 10px;
+            vertical-align: middle;
+        }
+
+        .btn {
+            cursor: pointer;
+            padding: 10px 20px;
+            border-radius: 8px;
+            border: none;
+            font-weight: 600;
+            font-size: 0.875rem;
+            transition: 0.2s;
+        }
+
+        .btn-add { background: #dcfce7; color: #166534; width: 100%; margin-top: 10px; }
+        .btn-remove { background: #fee2e2; color: #991b1b; padding: 8px; }
+
+        .results-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+        }
+
+        .result-card {
+            background: white;
+            border-left: 4px solid var(--accent);
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        .result-card h3 {
+            margin: 0;
+            font-size: 1.1rem;
+            color: var(--primary);
+        }
+
+        .price-main {
+            font-size: 1.5rem;
+            font-weight: 800;
+            margin: 10px 0;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            background: #e0f2fe;
+            color: #0369a1;
+        }
+
+        @media (max-width: 480px) {
+            .product-header { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <h1 id="displayTitulo">Cotizador de Productos</h1>
+        <p>Generador de escalas de precios y descuentos</p>
+    </header>
+
+    <div class="card">
+        <div class="product-header">
+            <div>
+                <label>Nombre del Producto / Proyecto</label>
+                <input type="text" id="nombreProd" placeholder="Ej: Servicio de Ingesta AWS" oninput="actualizarUI()">
+            </div>
+            <div>
+                <label>Precio Unitario ($)</label>
+                <input type="number" id="precioBase" value="1200" oninput="actualizarUI()">
+            </div>
+        </div>
+
+        <table id="tablaDescuentos">
+            <thead>
+                <tr>
+                    <th>Cant.</th>
+                    <th>% Desc.</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody id="cuerpoTabla">
+                <tr>
+                    <td><input type="number" class="cant" value="5" oninput="actualizarUI()"></td>
+                    <td><input type="number" class="desc" value="10" oninput="actualizarUI()"></td>
+                    <td><button class="btn btn-remove" onclick="eliminarFila(this)">✕</button></td>
+                </tr>
+            </tbody>
+        </table>
+        <button class="btn btn-add" onclick="agregarFila()">+ Añadir Escala de Volumen</button>
+    </div>
+
+    <div id="resultadosContenedor" class="results-grid">
+        </div>
+</div>
+
+<script>
+    function agregarFila() {
+        const tbody = document.getElementById('cuerpoTabla');
+        const nuevaFila = document.createElement('tr');
+        nuevaFila.innerHTML = `
+            <td><input type="number" class="cant" value="10" oninput="actualizarUI()"></td>
+            <td><input type="number" class="desc" value="15" oninput="actualizarUI()"></td>
+            <td><button class="btn btn-remove" onclick="eliminarFila(this)">✕</button></td>
+        `;
+        tbody.appendChild(nuevaFila);
+        actualizarUI();
+    }
+
+    function eliminarFila(btn) {
+        btn.closest('tr').remove();
+        actualizarUI();
+    }
+
+    function actualizarUI() {
+        const nombre = document.getElementById('nombreProd').value || "Cotizador de Productos";
+        document.getElementById('displayTitulo').innerText = nombre;
+
+        const precioBase = parseFloat(document.getElementById('precioBase').value) || 0;
+        const filas = document.querySelectorAll('#cuerpoTabla tr');
+        const contenedor = document.getElementById('resultadosContenedor');
+        
+        contenedor.innerHTML = '';
+
+        filas.forEach(fila => {
+            const cant = parseFloat(fila.querySelector('.cant').value) || 0;
+            const desc = parseFloat(fila.querySelector('.desc').value) || 0;
+
+            if (cant > 0) {
+                const subtotal = cant * precioBase;
+                const ahorro = subtotal * (desc / 100);
+                const total = subtotal - ahorro;
+                const unitario = total / cant;
+
+                const card = document.createElement('div');
+                card.className = 'result-card';
+                card.innerHTML = `
+                    <div class="badge">Ahorro: ${desc}%</div>
+                    <h3>Combo x ${cant}</h3>
+                    <div class="price-main">$${total.toLocaleString('es-AR')}</div>
+                    <div style="font-size: 0.85rem; color: var(--secondary)">
+                        <strong>Precio Unitario:</strong> $${unitario.toLocaleString('es-AR')}<br>
+                        <strong>Ahorro total:</strong> $${ahorro.toLocaleString('es-AR')}
+                    </div>
+                `;
+                contenedor.appendChild(card);
+            }
+        });
+    }
+
+    window.onload = actualizarUI;
+</script>
+
+</body>
+</html>

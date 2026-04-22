@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cotizador de Combos | Data Architecture Solutions</title>
+    <title>Cotizador de promociones | Data Architecture Solutions</title>
     <style>
         :root {
             --primary: #1e40af;
@@ -108,49 +108,8 @@
 
         .btn-add { background: #dcfce7; color: #166534; width: 100%; margin-top: 10px; }
         .btn-remove { background: #fee2e2; color: #991b1b; padding: 8px; }
+        .btn-action { background: #e0f2fe; color: #0369a1; padding: 8px; font-weight: bold; }
         .btn-primary { background: var(--accent); color: white; width: 100%; margin-top: 10px; }
-        .btn-action { background: #e0f2fe; color: #0369a1; width: 100%; margin-top: 15px; }
-
-        .results-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 15px;
-            margin-bottom: 20px;
-        }
-
-        .result-card {
-            background: white;
-            border-left: 4px solid var(--accent);
-            padding: 15px;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-        }
-
-        .result-card h3 {
-            margin: 0;
-            font-size: 1.1rem;
-            color: var(--primary);
-        }
-
-        .price-main {
-            font-size: 1.5rem;
-            font-weight: 800;
-            margin: 10px 0;
-        }
-
-        .badge {
-            display: inline-block;
-            padding: 2px 8px;
-            border-radius: 4px;
-            font-size: 0.75rem;
-            font-weight: 700;
-            background: #e0f2fe;
-            color: #0369a1;
-            margin-bottom: 5px;
-        }
 
         /* Estilos específicos para la Etiqueta */
         .seccion-etiqueta {
@@ -180,34 +139,12 @@
             border-bottom: 2px solid #000;
             padding-bottom: 10px;
             margin-top: 0;
+            font-size: 1.5rem;
         }
 
         .label-items {
             margin-bottom: 20px;
-            border-bottom: 1px dashed #000;
             padding-bottom: 10px;
-        }
-
-        .label-total {
-            font-size: 1.5rem;
-            font-weight: bold;
-            text-align: right;
-        }
-
-        .barcode-placeholder {
-            height: 40px;
-            background: repeating-linear-gradient(
-                90deg,
-                #000,
-                #000 2px,
-                #fff 2px,
-                #fff 4px,
-                #000 4px,
-                #000 8px,
-                #fff 8px,
-                #fff 10px
-            );
-            margin: 20px 0;
         }
 
         @media (max-width: 480px) {
@@ -239,20 +176,20 @@
 
 <div class="container">
     <header>
-        <h1 id="displayTitulo">Cotizador de Productos</h1>
-        <p>Generador de escalas de precios y creaci&oacute;n de etiquetas</p>
+        <h1 id="displayTitulo">Cotizador de promociones</h1>
+        <p>Generador de escalas de precios y creación de etiquetas</p>
     </header>
 
     <div class="card">
         <h2 style="margin-top: 0; font-size: 1.25rem;">1. Configurar Producto y Escalas</h2>
         <div class="product-header">
             <div>
-                <label>Nombre del Producto / Proyecto (Para Cotizar)</label>
-                <input type="text" id="nombreProd" placeholder="Ej: Playera Estampada" oninput="actualizarUI()">
+                <label>Nombre del Producto o Combo</label>
+                <input type="text" id="nombreProd" placeholder="Ej: Playera Estampada">
             </div>
             <div>
                 <label>Precio Unitario Base ($)</label>
-                <input type="number" id="precioBase" value="1200" oninput="actualizarUI()">
+                <input type="number" id="precioBase" value="1200">
             </div>
         </div>
 
@@ -261,53 +198,54 @@
                 <tr>
                     <th>Cant.</th>
                     <th>% Desc.</th>
-                    <th></th>
+                    <th style="width: 100px;">Acciones</th>
                 </tr>
             </thead>
             <tbody id="cuerpoTabla">
                 <tr>
-                    <td><input type="number" class="cant" value="1" oninput="actualizarUI()"></td>
-                    <td><input type="number" class="desc" value="0" oninput="actualizarUI()"></td>
-                    <td><button class="btn btn-remove" onclick="eliminarFila(this)">✕</button></td>
+                    <td><input type="number" class="cant" value="1"></td>
+                    <td><input type="number" class="desc" value="0"></td>
+                    <td>
+                        <button class="btn btn-action" title="Añadir a Tabla" onclick="enviarAlCarrito(this)">➕</button>
+                        <button class="btn btn-remove" title="Eliminar Fila" onclick="eliminarFila(this)">✕</button>
+                    </td>
                 </tr>
                 <tr>
-                    <td><input type="number" class="cant" value="5" oninput="actualizarUI()"></td>
-                    <td><input type="number" class="desc" value="10" oninput="actualizarUI()"></td>
-                    <td><button class="btn btn-remove" onclick="eliminarFila(this)">✕</button></td>
+                    <td><input type="number" class="cant" value="5"></td>
+                    <td><input type="number" class="desc" value="10"></td>
+                    <td>
+                        <button class="btn btn-action" title="Añadir a Tabla" onclick="enviarAlCarrito(this)">➕</button>
+                        <button class="btn btn-remove" title="Eliminar Fila" onclick="eliminarFila(this)">✕</button>
+                    </td>
                 </tr>
             </tbody>
         </table>
-        <button class="btn btn-add" onclick="agregarFila()">+ Añadir Escala de Volumen</button>
+        <button class="btn btn-add" onclick="agregarFila()">+ Añadir nueva escala</button>
     </div>
-
-    <!-- Resultados dinámicos -->
-    <div id="resultadosContenedor" class="results-grid"></div>
 
     <!-- Sección de Carrito / Tabla de Acopio -->
     <div class="card" id="seccionAcopio">
         <h2 style="margin-top: 0; font-size: 1.25rem;">2. Items para la Etiqueta</h2>
         <p style="font-size: 0.875rem; color: var(--secondary); margin-bottom: 10px;">
-            Agrega productos usando los botones azules de las tarjetas de arriba. Puedes cambiar el nombre del producto en cualquier momento para agregar algo diferente.
+            Presiona el símbolo ➕ en la tabla de arriba para cargar los productos o combos aquí.
         </p>
-        <table>
-            <thead>
-                <tr>
-                    <th>Detalle</th>
-                    <th>Subtotal</th>
-                    <th></th>
-                </tr>
-            </thead>
-            <tbody id="cuerpoCarrito">
-                <!-- Se rellena con JS -->
-            </tbody>
-            <tfoot>
-                <tr>
-                    <td style="font-weight: bold; text-align: right;">TOTAL:</td>
-                    <td id="carritoTotal" style="font-weight: bold; font-size: 1.1rem;">$0</td>
-                    <td></td>
-                </tr>
-            </tfoot>
-        </table>
+        <div style="overflow-x: auto;">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Producto</th>
+                        <th>Cant.</th>
+                        <th>Precio Un.</th>
+                        <th>Ahorro Total</th>
+                        <th>Subtotal Final</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody id="cuerpoCarrito">
+                    <!-- Se rellena con JS -->
+                </tbody>
+            </table>
+        </div>
         <button class="btn btn-primary" onclick="generarEtiqueta()">Generar Etiqueta Final</button>
     </div>
 
@@ -315,12 +253,10 @@
     <div id="seccionEtiqueta" class="seccion-etiqueta">
         <h3 style="margin-top: 0;">Vista Previa de Etiqueta</h3>
         <div class="printable-label" id="printableArea">
-            <h2 id="etiquetaEmpresa">STORE LABEL</h2>
-            <div class="barcode-placeholder"></div>
+            <h2 id="etiquetaProducto">NOMBRE DE PRODUCTO</h2>
             <div class="label-items" id="etiquetaItems">
                 <!-- Items dinámicos -->
             </div>
-            <div class="label-total" id="etiquetaTotal">$0</div>
             <div style="font-size: 0.7rem; text-align: center; margin-top: 15px; color: #666;">
                 ¡Gracias por su compra!
             </div>
@@ -331,69 +267,43 @@
 </div>
 
 <script>
-    // ESTADO DEL CARRITO
     let carrito = [];
 
     function agregarFila() {
         const tbody = document.getElementById('cuerpoTabla');
         const nuevaFila = document.createElement('tr');
         nuevaFila.innerHTML = `
-            <td><input type="number" class="cant" value="10" oninput="actualizarUI()"></td>
-            <td><input type="number" class="desc" value="15" oninput="actualizarUI()"></td>
-            <td><button class="btn btn-remove" onclick="eliminarFila(this)">✕</button></td>
+            <td><input type="number" class="cant" value="10"></td>
+            <td><input type="number" class="desc" value="15"></td>
+            <td>
+                <button class="btn btn-action" title="Añadir a Tabla" onclick="enviarAlCarrito(this)">➕</button>
+                <button class="btn btn-remove" title="Eliminar Fila" onclick="eliminarFila(this)">✕</button>
+            </td>
         `;
         tbody.appendChild(nuevaFila);
-        actualizarUI();
     }
 
     function eliminarFila(btn) {
         btn.closest('tr').remove();
-        actualizarUI();
     }
 
-    function actualizarUI() {
-        const nombreInput = document.getElementById('nombreProd').value;
-        const nombre = nombreInput || "Producto Generico";
-        document.getElementById('displayTitulo').innerText = nombreInput ? "Cotizando: " + nombreInput : "Cotizador de Productos";
-
+    function enviarAlCarrito(btn) {
+        const fila = btn.closest('tr');
+        const nombreInput = document.getElementById('nombreProd').value.trim();
+        const nombre = nombreInput || "Producto genérico";
         const precioBase = parseFloat(document.getElementById('precioBase').value) || 0;
-        const filas = document.querySelectorAll('#cuerpoTabla tr');
-        const contenedor = document.getElementById('resultadosContenedor');
         
-        contenedor.innerHTML = '';
+        const cant = parseFloat(fila.querySelector('.cant').value) || 0;
+        const desc = parseFloat(fila.querySelector('.desc').value) || 0;
 
-        filas.forEach(fila => {
-            const cant = parseFloat(fila.querySelector('.cant').value) || 0;
-            const desc = parseFloat(fila.querySelector('.desc').value) || 0;
+        if (cant <= 0) return;
 
-            if (cant > 0) {
-                const subtotal = cant * precioBase;
-                const ahorro = subtotal * (desc / 100);
-                const total = subtotal - ahorro;
-                const unitario = total / cant;
+        const subtotal = cant * precioBase;
+        const ahorro = subtotal * (desc / 100);
+        const total = subtotal - ahorro;
+        const unitario = cant > 0 ? (total / cant) : 0;
 
-                const card = document.createElement('div');
-                card.className = 'result-card';
-                card.innerHTML = `
-                    <div>
-                        <div class="badge">Ahorro: ${desc}%</div>
-                        <h3>Combo x ${cant}</h3>
-                        <div class="price-main">$${total.toLocaleString('es-AR')}</div>
-                        <div style="font-size: 0.85rem; color: var(--secondary)">
-                            <strong>Precio Unitario:</strong> $${unitario.toLocaleString('es-AR')}<br>
-                            <strong>Ahorro total:</strong> $${ahorro.toLocaleString('es-AR')}
-                        </div>
-                    </div>
-                    <button class="btn btn-action" onclick="agregarAlCarrito('${nombre}', ${cant}, ${total})">➕ Añadir a Etiqueta</button>
-                `;
-                contenedor.appendChild(card);
-            }
-        });
-    }
-
-    // LÓGICA DEL CARRITO
-    function agregarAlCarrito(nombre, cantidad, totalConst) {
-        carrito.push({ nombre: nombre, cant: cantidad, total: totalConst });
+        carrito.push({ nombre, cant, unitario, ahorro, total });
         renderizarCarrito();
     }
 
@@ -405,28 +315,26 @@
     function renderizarCarrito() {
         const tbody = document.getElementById('cuerpoCarrito');
         tbody.innerHTML = '';
-        let granTotal = 0;
         
         if(carrito.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="3" style="text-align:center; color:#94a3b8;">Aún no hay items agregados.</td></tr>';
-            document.getElementById('carritoTotal').innerText = '$0';
+            tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; color:#94a3b8;">Aún no hay items agregados. Utiliza el botón ➕ arriba para añadir.</td></tr>';
             return;
         }
 
         carrito.forEach((item, index) => {
-            granTotal += item.total;
             const tr = document.createElement('tr');
             tr.innerHTML = `
-                <td><strong>${item.cant}x</strong> ${item.nombre}</td>
-                <td>$${item.total.toLocaleString('es-AR')}</td>
+                <td><strong>${item.nombre}</strong></td>
+                <td>${item.cant}x</td>
+                <td>$${item.unitario.toLocaleString('es-AR')}</td>
+                <td style="color: #16a34a;">$${item.ahorro.toLocaleString('es-AR')}</td>
+                <td style="font-weight: bold;">$${item.total.toLocaleString('es-AR')}</td>
                 <td><button class="btn btn-remove" style="padding: 4px 8px; font-size: 0.7rem;" onclick="eliminarDelCarrito(${index})">✕</button></td>
             `;
             tbody.appendChild(tr);
         });
         
-        document.getElementById('carritoTotal').innerText = '$' + granTotal.toLocaleString('es-AR');
-        
-        // Ocultar etiqueta si se modifica el carrito
+        // Ocultar etiqueta si se están haciendo cambios
         document.getElementById('seccionEtiqueta').style.display = 'none';
     }
 
@@ -439,10 +347,14 @@
 
         const itemsCont = document.getElementById('etiquetaItems');
         itemsCont.innerHTML = '';
-        let granTotal = 0;
         
+        // Determinar título de etiqueta (nombre del primer producto, o el valor actual del input)
+        const nombreParaEtiqueta = document.getElementById('nombreProd').value.trim() 
+            || (carrito[0] ? carrito[0].nombre : "PROMOCIÓN");
+        
+        document.getElementById('etiquetaProducto').innerText = nombreParaEtiqueta.toUpperCase();
+
         carrito.forEach((item) => {
-            granTotal += item.total;
             itemsCont.innerHTML += `
                 <div style="display:flex; justify-content:space-between; margin-bottom: 8px;">
                     <span style="padding-right: 15px;">${item.cant}x ${item.nombre}</span>
@@ -451,10 +363,7 @@
             `;
         });
         
-        document.getElementById('etiquetaTotal').innerText = '$' + granTotal.toLocaleString('es-AR');
         document.getElementById('seccionEtiqueta').style.display = 'block';
-        
-        // Scroll hacia la etiqueta
         document.getElementById('seccionEtiqueta').scrollIntoView({ behavior: 'smooth' });
     }
 
@@ -463,7 +372,6 @@
     }
 
     window.onload = function() {
-        actualizarUI();
         renderizarCarrito();
     };
 </script>

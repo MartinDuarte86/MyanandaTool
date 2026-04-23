@@ -437,7 +437,7 @@
     const GOOGLE_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwyCHODaWdHQudMIUpkJI8oH8v08edo_XP7pOvvp7JkL320WKFXLbKs1BcGEblD3lkj/exec"; 
     
     // URL PARA EL ESTE NUEVO MÓDULO MAYORISTA:
-    const GOOGLE_WEB_APP_URL_MAYORISTA = "https://script.google.com/macros/s/AKfycbx3yPZ6Tm4EBHUL_QC-6R39vTecF2dZXi-eMc5itgzU6UZRVGT9hMNN_CNSwxqx-i9t/exec";
+    const GOOGLE_WEB_APP_URL_MAYORISTA = "https://script.google.com/macros/s/AKfycbxY-YVz0mCxQFArI_g6IbcVgSlIPH9yjBmessF7QKM8CcwzKVmXOyefoEO8YS__c5Gh/exec";
     // =====================================
 
     async function cargarCatalogo() {
@@ -740,6 +740,10 @@
 
             const respuesta = await fetch(GOOGLE_WEB_APP_URL_MAYORISTA, {
                 method: "POST",
+                headers: {
+                    "Content-Type": "text/plain;charset=utf-8"
+                },
+                redirect: "follow",
                 body: JSON.stringify(payload)
             });
 
@@ -835,6 +839,10 @@
 
             const respuesta = await fetch(GOOGLE_WEB_APP_URL_MAYORISTA, {
                 method: "POST",
+                headers: {
+                    "Content-Type": "text/plain;charset=utf-8"
+                },
+                redirect: "follow",
                 body: JSON.stringify(payload)
             });
 

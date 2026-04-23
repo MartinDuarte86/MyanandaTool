@@ -235,7 +235,9 @@
                     <tr>
                         <th>Producto</th>
                         <th>Cant.</th>
+                        <th>Total sin Promo</th>
                         <th>Precio Un.</th>
+                        <th>Ahorro Un.</th>
                         <th>Ahorro Total</th>
                         <th>Subtotal Final</th>
                         <th></th>
@@ -298,12 +300,21 @@
 
         if (cant <= 0) return;
 
-        const subtotal = cant * precioBase;
-        const ahorro = subtotal * (desc / 100);
-        const total = subtotal - ahorro;
-        const unitario = cant > 0 ? (total / cant) : 0;
+        const subtotalSinPromo = cant * precioBase;
+        const ahorroTotal = subtotalSinPromo * (desc / 100);
+        const total = subtotalSinPromo - ahorroTotal;
+        const unitarioNeto = cant > 0 ? (total / cant) : 0;
+        const ahorroUnitario = cant > 0 ? (ahorroTotal / cant) : 0;
 
-        carrito.push({ nombre, cant, unitario, ahorro, total });
+        carrito.push({
+            nombre,
+            cant,
+            subtotalSinPromo,
+            unitarioNeto,
+            ahorroUnitario,
+            ahorroTotal,
+            total
+        });
         renderizarCarrito();
     }
 
@@ -317,7 +328,7 @@
         tbody.innerHTML = '';
         
         if(carrito.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; color:#94a3b8;">Aún no hay items agregados. Utiliza el botón ➕ arriba para añadir.</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="8" style="text-align:center; color:#94a3b8;">Aún no hay items agregados. Utiliza el botón ➕ arriba para añadir.</td></tr>';
             return;
         }
 
@@ -326,8 +337,10 @@
             tr.innerHTML = `
                 <td><strong>${item.nombre}</strong></td>
                 <td>${item.cant}x</td>
-                <td>$${item.unitario.toLocaleString('es-AR')}</td>
-                <td style="color: #16a34a;">$${item.ahorro.toLocaleString('es-AR')}</td>
+                <td>$${item.subtotalSinPromo.toLocaleString('es-AR')}</td>
+                <td>$${item.unitarioNeto.toLocaleString('es-AR')}</td>
+                <td style="color: #16a34a;">$${item.ahorroUnitario.toLocaleString('es-AR')}</td>
+                <td style="color: #16a34a; font-weight: 500;">$${item.ahorroTotal.toLocaleString('es-AR')}</td>
                 <td style="font-weight: bold;">$${item.total.toLocaleString('es-AR')}</td>
                 <td><button class="btn btn-remove" style="padding: 4px 8px; font-size: 0.7rem;" onclick="eliminarDelCarrito(${index})">✕</button></td>
             `;

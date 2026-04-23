@@ -702,11 +702,22 @@
             } else {
                 listaMayoristaCache.forEach(prod => {
                     const tr = document.createElement('tr');
+                    
+                    let precioHTML = "";
+                    let promoHTML = "-";
+                    
+                    if (prod.precio_promo > 0 && prod.precio_promo < prod.precio) {
+                        precioHTML = `<del style="color:#94a3b8">$${Number(prod.precio).toLocaleString('es-AR')}</del>`;
+                        promoHTML = `$${Number(prod.precio_promo).toLocaleString('es-AR')}`;
+                    } else {
+                        precioHTML = `$${Number(prod.precio).toLocaleString('es-AR')}`;
+                    }
+                    
                     tr.innerHTML = `
                         <td><strong>${prod.sku || "-"}</strong></td>
                         <td>${prod.nombre}</td>
-                        <td>$${Number(prod.precio).toLocaleString('es-AR')}</td>
-                        <td style="color:#16a34a; font-weight:bold;">$${Number(prod.precio_promo).toLocaleString('es-AR')}</td>
+                        <td>${precioHTML}</td>
+                        <td style="color:#16a34a; font-weight:bold;">${promoHTML}</td>
                     `;
                     tbody.appendChild(tr);
                 });

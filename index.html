@@ -19,94 +19,52 @@
             background-color: var(--bg);
             color: var(--text);
             margin: 0;
-            padding: 10px;
+            padding: 0;
+            padding-bottom: 20px;
             line-height: 1.5;
+        }
+
+        #statusBanner {
+            background: #eab308;
+            color: #fff;
+            text-align: center;
+            padding: 12px;
+            font-weight: bold;
+            font-size: 0.9rem;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
 
         .container {
             max-width: 900px;
-            margin: 0 auto;
+            margin: 20px auto;
+            padding: 0 10px;
         }
-
-        /* ===== ESTILOS TABS ===== */
-        .nav-tabs {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 20px;
-            border-bottom: 2px solid #e2e8f0;
-            padding-bottom: 5px;
-            overflow-x: auto;
-        }
-        .nav-tab {
-            padding: 10px 20px;
-            cursor: pointer;
-            border-radius: 8px 8px 0 0;
-            font-weight: 600;
-            color: var(--secondary);
-            background: transparent;
-            border: none;
-            transition: all 0.2s;
-            white-space: nowrap;
-        }
-        .nav-tab:hover {
-            color: var(--text);
-            background: #e2e8f0;
-        }
-        .nav-tab.active {
-            color: var(--primary);
-            border-bottom: 3px solid var(--primary);
-            margin-bottom: -7px;
-        }
-        .view-section { display: none; }
-        .view-section.active { display: block; }
-        
-        /* ESTILOS BOTON ESTADO (MAYORISTA) */
-        .status-btn {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            padding: 12px 24px;
-            border-radius: 8px;
-            border: none;
-            font-weight: bold;
-            font-size: 1rem;
-            color: white;
-            cursor: not-allowed;
-            transition: 0.3s;
-            width: 100%;
-        }
-        .status-red { background-color: #ef4444; }
-        .status-green { background-color: #22c55e; cursor: pointer; }
-        .status-red:hover { background-color: #dc2626; }
-        .status-green:hover { background-color: #16a34a; }
-
-        /* ===== ESTILOS DROP ZONE ===== */
-        .drop-zone {
-            margin-top: 15px;
-            border: 2px dashed #cbd5e1;
-            border-radius: 8px;
-            padding: 30px;
-            text-align: center;
-            background-color: #f8fafc;
-            color: var(--secondary);
-            cursor: pointer;
-            transition: 0.2s;
-        }
-        .drop-zone.dragover {
-            background-color: #e2e8f0;
-            border-color: var(--primary);
-            color: var(--primary);
-        }
-        .file-input { display: none; }
 
         header {
             background: var(--primary);
             color: white;
             padding: 2rem 1rem;
             border-radius: 12px;
-            text-align: center;
+            text-align: left;
             margin-bottom: 20px;
             box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .header-titles h1 {
+            margin: 0 0 5px 0;
+        }
+        .header-titles p {
+            margin: 0;
+            opacity: 0.8;
+            font-size: 0.9rem;
         }
 
         .card {
@@ -145,7 +103,6 @@
         input:focus {
             outline: none;
             border-color: var(--accent);
-            ring: 2px var(--accent);
         }
 
         /* ===== ESTILOS AUTOCOMPLETADO ===== */
@@ -181,13 +138,6 @@
         .autocomplete-item:last-child { border-bottom: none; }
         .prod-name { font-weight: 500; font-size: 0.9rem; }
         .prod-price { color: #16a34a; font-size: 0.875rem; font-weight: 600; }
-        .loader-text {
-            font-size: 0.75rem;
-            color: #94a3b8;
-            display: inline-block;
-            margin-left: 8px;
-            font-style: italic;
-        }
         /* ================================== */
 
         table {
@@ -223,6 +173,8 @@
         .btn-remove { background: #fee2e2; color: #991b1b; padding: 8px; }
         .btn-action { background: #e0f2fe; color: #0369a1; padding: 8px; font-weight: bold; }
         .btn-primary { background: var(--accent); color: white; width: 100%; margin-top: 10px; }
+        .btn-dark { background: #0f172a; color: white; border: 1px solid #334155; }
+        .btn-dark:hover { background: #1e293b; }
 
         .seccion-etiqueta {
             display: none;
@@ -259,6 +211,55 @@
             padding-bottom: 10px;
         }
 
+        /* ===== OVERLAY DE BLOQUEO Y DRAG & DROP ===== */
+        .overlay-lock {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(255,255,255,0.85); /* Fondo blanco semitransparente */
+            backdrop-filter: blur(4px);
+            z-index: 2000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .lock-panel {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.15);
+            text-align: center;
+            max-width: 450px;
+            width: 90%;
+            border: 3px solid #ef4444;
+        }
+
+        .lock-title {
+            color: #ef4444;
+            margin-top: 0;
+            font-size: 1.5rem;
+        }
+
+        .drop-zone {
+            border: 3px dashed #cbd5e1;
+            border-radius: 12px;
+            padding: 40px 20px;
+            cursor: pointer;
+            background: #f8fafc;
+            transition: all 0.2s;
+            margin-top: 20px;
+        }
+
+        .drop-zone:hover, .drop-zone.dragover {
+            background: #e2e8f0;
+            border-color: var(--accent);
+        }
+
+        .drop-zone div {
+            font-size: 3.5rem;
+            margin-bottom: 10px;
+        }
+
         @media (max-width: 480px) {
             .product-header { grid-template-columns: 1fr; }
         }
@@ -266,39 +267,56 @@
         @media print {
             body * { visibility: hidden; }
             .printable-label, .printable-label * { visibility: visible; }
-            .printable-label {
-                position: absolute; left: 0; top: 0; width: 100%; max-width: none; border: none; padding: 10px;
-            }
+            .printable-label { position: absolute; left: 0; top: 0; width: 100%; max-width: none; border: none; padding: 10px; }
+            #statusBanner, .overlay-lock { display: none !important; }
             @page { margin: 0; }
         }
     </style>
 </head>
 <body>
 
+<!-- Estado Global Superior -->
+<div id="statusBanner">Conectando y validando integridad de la base de datos...</div>
+
+<!-- Overlay Bloqueador -->
+<div id="bloqueoCortina" class="overlay-lock">
+    <div class="lock-panel">
+        <h2 class="lock-title">🔴 Sistema Bloqueado</h2>
+        <p style="margin-bottom:20px; color:#475569;">
+            El archivo central no ha sido actualizado el día de hoy.<br>Como medida de seguridad, la plataforma ha sido desactivada temporalmente.
+        </p>
+        
+        <div id="dropZone" class="drop-zone">
+            <div>📥</div>
+            <p style="font-weight:600; color:#334155;">Arrastra y suelta tu archivo Excel aquí</p>
+            <p style="font-size:0.8rem; color:#64748b; margin-top:5px;">o haz clic para explorar tu computadora</p>
+            <input type="file" id="fileInput" accept=".xlsx, .xls, .csv" style="display:none;">
+        </div>
+        
+        <p id="uploadStatus" style="font-weight:bold; margin-top:15px; color:#1e40af; min-height: 20px;"></p>
+    </div>
+</div>
+
 <div class="container">
     <header>
-        <h1 id="displayTitulo">Data Architecture Solutions</h1>
-        <p>Herramientas de automatización y gestión B2B</p>
+        <div class="header-titles">
+            <h1 id="displayTitulo">Cotizador de promociones</h1>
+            <p>Generador de escalas de precios y creación de etiquetas</p>
+        </div>
+        <div>
+            <button id="btnMayorista" class="btn btn-dark" onclick="generarListaMayorista()">
+                Generar Lista Mayorista (Tiendanube)
+            </button>
+        </div>
     </header>
-
-    <div class="nav-tabs">
-        <button class="nav-tab active" onclick="switchTab('cotizador', this)">Cotizador de promociones</button>
-        <button class="nav-tab" onclick="switchTab('mayorista', this)">Generar lista de precio mayorista</button>
-    </div>
-
-    <!-- VISTA: COTIZADOR DE PROMOCIONES -->
-    <div id="view_cotizador" class="view-section active">
 
     <div class="card">
         <h2 style="margin-top: 0; font-size: 1.25rem;">1. Configurar Producto y Escalas</h2>
         <div class="product-header">
             <div>
-                <label>
-                    Nombre del Producto o Combo
-                    <span id="cargaStatus" class="loader-text">Sincronizando con base de datos...</span>
-                </label>
+                <label>Nombre del Producto o Combo</label>
                 <div class="autocomplete-container">
-                    <input type="text" id="nombreProd" placeholder="Ej: Esencia..." autocomplete="off" oninput="filtrarProductos()">
+                    <input type="text" id="nombreProd" placeholder="Escribe para buscar..." autocomplete="off" oninput="filtrarProductos()">
                     <div id="listaAutocompletado" class="autocomplete-list"></div>
                 </div>
             </div>
@@ -365,101 +383,149 @@
         <button class="btn btn-primary" onclick="generarEtiqueta()">Generar Etiqueta Final</button>
     </div>
 
+    <!-- Etiqueta generada -->
     <div id="seccionEtiqueta" class="seccion-etiqueta">
         <h3 style="margin-top: 0;">Vista Previa de Etiqueta</h3>
         <div class="printable-label" id="printableArea">
             <h2 id="etiquetaProducto">NOMBRE DE PRODUCTO</h2>
-            <div class="label-items" id="etiquetaItems">
-                <!-- Items dinámicos -->
-            </div>
+            <div class="label-items" id="etiquetaItems"></div>
             <div style="font-size: 0.7rem; text-align: center; margin-top: 15px; color: #666;">
                 ¡Gracias por su compra!
             </div>
         </div>
         <button class="btn btn-primary" style="max-width: 200px; margin-top: 20px;" onclick="imprimirEtiqueta()">🖨️ Imprimir Etiqueta</button>
     </div>
-
-    </div> <!-- FIN VISTA COTIZADOR -->
-
-    <!-- VISTA: MAYORISTA -->
-    <div id="view_mayorista" class="view-section">
-        <div class="card">
-            <h2 style="margin-top: 0; font-size: 1.25rem;">1. Búsqueda de Listado Tiendanube</h2>
-            <p style="font-size: 0.875rem; color: var(--secondary);">
-                Este módulo busca automáticamente el archivo CSV de exportación de Tiendanube en Google Drive. Verifica que el archivo haya sido **creado el día de hoy**.
-            </p>
-            <div style="margin-top: 20px; margin-bottom: 20px;">
-                <button id="btnGenerarMayorista" class="status-btn status-red" onclick="ejecutarListaMayorista()" disabled>
-                    <span id="txtBtnMayorista">🔴 Comprobando archivo de hoy...</span>
-                </button>
-            </div>
-            
-            <div id="dropZoneContainer" style="display: none;">
-                <div id="dropZone" class="drop-zone" onclick="document.getElementById('fileInput').click()">
-                    <span>Alternativamente, arrastra tu archivo CSV aquí o haz clic para subirlo a Drive</span>
-                    <input type="file" id="fileInput" class="file-input" accept=".csv">
-                </div>
-            </div>
-        </div>
-
-        <div class="card" id="cardResultadosMayorista" style="display: none;">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-                <h2 style="margin-top: 0; font-size: 1.25rem;">Resultados Mayoristas</h2>
-                <button class="btn btn-action" onclick="exportarPDFMayorista()">🖨️ Exportar a PDF</button>
-            </div>
-            
-            <div style="overflow-x: auto; max-height: 400px; overflow-y: auto;">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>SKU</th>
-                            <th>Nombre</th>
-                            <th>Precio</th>
-                            <th>Precio Promocional</th>
-                        </tr>
-                    </thead>
-                    <tbody id="cuerpoTablaMayorista">
-                        <!-- Llenado por JS -->
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    </div> <!-- FIN VISTA MAYORISTA -->
-
 </div>
 
 <script>
     let carrito = [];
-    let catalogoProductos = []; // Almacena todos los productos
+    let catalogoProductos = []; 
 
     // ===== CONFIGURACIÓN DEL BACKEND =====
-    // Reemplaza esto con tu URL de la Web App en Apps Script
     const GOOGLE_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwyCHODaWdHQudMIUpkJI8oH8v08edo_XP7pOvvp7JkL320WKFXLbKs1BcGEblD3lkj/exec"; 
-    
-    // URL PARA EL ESTE NUEVO MÓDULO MAYORISTA:
-    const GOOGLE_WEB_APP_URL_MAYORISTA = "https://script.google.com/macros/s/AKfycbyoYYAepDCk6RNdYUKWA0Bc5fJhEUKeAU4N5uUXyhynrbHbk42fdzyS1FUjuDFD9lC_/exec";
     // =====================================
 
     async function cargarCatalogo() {
-        const spanCarga = document.getElementById('cargaStatus');
-        if (!GOOGLE_WEB_APP_URL.startsWith("http")) {
-            spanCarga.innerText = "(Falta URL segura de Google Web App)";
-            spanCarga.style.color = '#ca8a04';
-            return; // Esperando configuración
-        }
+        const banner = document.getElementById('statusBanner');
+        const cortina = document.getElementById('bloqueoCortina');
 
         try {
-            const respuesta = await fetch(GOOGLE_WEB_APP_URL);
-            const datos = await respuesta.json(); // Se espera parsear base
-            catalogoProductos = datos;
-            spanCarga.innerText = `(${datos.length} productos conectados)`;
-            spanCarga.style.color = '#16a34a';
+            // Se manda parametro 'action=get_data' para separar de otras llamadas
+            const respuesta = await fetch(GOOGLE_WEB_APP_URL + "?action=get_data");
+            const datos = await respuesta.json(); 
+            
+            if (datos.valid) {
+                // ARCHIVO VALIDADO Y ACTUALIZADO
+                catalogoProductos = datos.productos || [];
+                banner.style.background = '#16a34a';
+                banner.innerHTML = `🟢 Conexión Activa | Archivo verificado: <b>${datos.fileName}</b> (${datos.date})`;
+                
+                // Descongelamos la UI
+                cortina.style.display = 'none';
+                document.body.style.overflow = 'auto';
+            } else {
+                // ARCHIVO VIEJO O INEXISTENTE
+                banner.style.background = '#dc2626';
+                banner.innerHTML = `🔴 Archivo desactualizado. Registrado: ${datos.date || 'Desconocido'}`;
+                
+                // Mantenemos la UI Congelada y mostramos el Drag&Drop
+                cortina.style.display = 'flex';
+                document.body.style.overflow = 'hidden';
+            }
         } catch (error) {
-            spanCarga.innerText = "(Error de conexión con Sheets)";
-            spanCarga.style.color = '#991b1b';
-            console.error('Error al cargar catálogo', error);
+            banner.style.background = '#dc2626';
+            banner.innerHTML = "🔴 Error crítico de Red con Google Apps Script. Por favor revisa los permisos.";
+            cortina.style.display = 'flex';
+            document.body.style.overflow = 'hidden';
         }
     }
+
+    // ====== DRAG & DROP LOGIC ======
+    const dropZone = document.getElementById('dropZone');
+    const fileInput = document.getElementById('fileInput');
+
+    dropZone.addEventListener('click', () => fileInput.click());
+
+    dropZone.addEventListener('dragover', (e) => {
+        e.preventDefault(); dropZone.classList.add('dragover');
+    });
+
+    dropZone.addEventListener('dragleave', (e) => {
+        e.preventDefault(); dropZone.classList.remove('dragover');
+    });
+
+    dropZone.addEventListener('drop', (e) => {
+        e.preventDefault(); dropZone.classList.remove('dragover');
+        if (e.dataTransfer.files.length) subirArchivo(e.dataTransfer.files[0]);
+    });
+
+    fileInput.addEventListener('change', (e) => {
+        if (e.target.files.length) subirArchivo(e.target.files[0]);
+    });
+
+    function subirArchivo(file) {
+        const reader = new FileReader();
+        const statusMsg = document.getElementById('uploadStatus');
+        
+        statusMsg.innerText = "Transfiriendo archivo hacia la nube, aguarda unos segundos...";
+        statusMsg.style.color = "#1e40af";
+
+        reader.onload = async function() {
+            // Extraer solo la cadena en base64 pura
+            const base64Data = reader.result.split(',')[1];
+            
+            try {
+                const respuesta = await fetch(GOOGLE_WEB_APP_URL, {
+                    method: "POST",
+                    body: JSON.stringify({
+                        fileData: base64Data,
+                        fileName: file.name,
+                        mimeType: file.type
+                    })
+                });
+                
+                const result = await respuesta.json();
+                if(result.success) {
+                    statusMsg.innerText = "¡Carga y Conversión completada! Desbloqueando plataforma...";
+                    statusMsg.style.color = "#16a34a";
+                    setTimeout(() => window.location.reload(), 2000);
+                } else {
+                    statusMsg.innerText = "Error del Servidor: " + result.error;
+                    statusMsg.style.color = "#dc2626";
+                }
+            } catch(e) {
+                statusMsg.innerText = "Falló la subida por un problema de red.";
+                statusMsg.style.color = "#dc2626";
+            }
+        };
+        reader.readAsDataURL(file);
+    }
+    // ===============================
+
+    // ====== LLAMADA A TIENDANUBE API ======
+    async function generarListaMayorista() {
+        const btn = document.getElementById('btnMayorista');
+        btn.innerText = "Procesando...";
+        btn.disabled = true;
+
+        try {
+            const respuesta = await fetch(GOOGLE_WEB_APP_URL + "?action=tiendanube_api");
+            const resultado = await respuesta.json();
+            
+            if(resultado.success) {
+                alert("¡Lista mayorista generada y sincronizada con éxito!");
+            } else {
+                alert("Operación denegada en backend: " + resultado.error);
+            }
+        } catch(e) {
+            alert("Error de red al intentar invocar la API Mayorista.");
+        } finally {
+            btn.innerText = "Generar Lista Mayorista (Tiendanube)";
+            btn.disabled = false;
+        }
+    }
+    // ======================================
+
 
     function filtrarProductos() {
         const input = document.getElementById('nombreProd');
@@ -467,29 +533,17 @@
         const filtro = input.value.toLowerCase().trim();
 
         lista.innerHTML = '';
+        if (!filtro) { lista.style.display = 'none'; return; }
 
-        if (!filtro) {
-            lista.style.display = 'none';
-            return;
-        }
-
-        // Buscar coincidencias
-        const resultados = catalogoProductos.filter(prod => 
-            prod.nombre.toLowerCase().includes(filtro)
-        );
+        const resultados = catalogoProductos.filter(prod => prod.nombre.toLowerCase().includes(filtro));
 
         if (resultados.length > 0) {
-            // Mostrar los primeros coincientes (máx. 15 por rendimiento)
             resultados.slice(0, 15).forEach(prod => {
                 const div = document.createElement('div');
                 div.className = 'autocomplete-item';
-                div.innerHTML = `
-                    <span class="prod-name">${prod.nombre}</span>
-                    <span class="prod-price">$${Number(prod.precio).toLocaleString('es-AR')}</span>
-                `;
+                div.innerHTML = `<span class="prod-name">${prod.nombre}</span><span class="prod-price">$${Number(prod.precio).toLocaleString('es-AR')}</span>`;
                 div.onclick = function() {
                     input.value = prod.nombre;
-                    // Actualiza el precio automáticamente al hacer click
                     document.getElementById('precioBase').value = prod.precio; 
                     lista.style.display = 'none';
                 };
@@ -501,13 +555,13 @@
         }
     }
 
-    // Ocultar desplegable al clickear fuera
     document.addEventListener('click', function(e) {
         if (e.target.id !== 'nombreProd') {
             document.getElementById('listaAutocompletado').style.display = 'none';
         }
     });
 
+    // LÓGICA DE TABLAS
     function agregarFila() {
         const tbody = document.getElementById('cuerpoTabla');
         const nuevaFila = document.createElement('tr');
@@ -515,16 +569,14 @@
             <td><input type="number" class="cant" value="10"></td>
             <td><input type="number" class="desc" value="15"></td>
             <td>
-                <button class="btn btn-action" title="Añadir a Tabla" onclick="enviarAlCarrito(this)">➕</button>
-                <button class="btn btn-remove" title="Eliminar Fila" onclick="eliminarFila(this)">✕</button>
+                <button class="btn btn-action" onclick="enviarAlCarrito(this)">➕</button>
+                <button class="btn btn-remove" onclick="eliminarFila(this)">✕</button>
             </td>
         `;
         tbody.appendChild(nuevaFila);
     }
 
-    function eliminarFila(btn) {
-        btn.closest('tr').remove();
-    }
+    function eliminarFila(btn) { btn.closest('tr').remove(); }
 
     function enviarAlCarrito(btn) {
         const fila = btn.closest('tr');
@@ -543,15 +595,7 @@
         const unitarioNeto = cant > 0 ? (total / cant) : 0;
         const ahorroUnitario = cant > 0 ? (ahorroTotal / cant) : 0;
 
-        carrito.push({
-            nombre,
-            cant,
-            subtotalSinPromo,
-            unitarioNeto,
-            ahorroUnitario,
-            ahorroTotal,
-            total
-        });
+        carrito.push({ nombre, cant, subtotalSinPromo, unitarioNeto, ahorroUnitario, ahorroTotal, total });
         renderizarCarrito();
     }
 
@@ -565,7 +609,7 @@
         tbody.innerHTML = '';
         
         if(carrito.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="8" style="text-align:center; color:#94a3b8;">Aún no hay items agregados. Utiliza el botón ➕ arriba para añadir.</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="8" style="text-align:center; color:#94a3b8;">Aún no hay items.</td></tr>';
             return;
         }
 
@@ -583,22 +627,14 @@
             `;
             tbody.appendChild(tr);
         });
-        
         document.getElementById('seccionEtiqueta').style.display = 'none';
     }
 
     function generarEtiqueta() {
-        if (carrito.length === 0) {
-            alert("Agrega al menos un ítem a la etiqueta antes de generar.");
-            return;
-        }
-
+        if (carrito.length === 0) { alert("Agrega al menos un ítem."); return; }
         const itemsCont = document.getElementById('etiquetaItems');
         itemsCont.innerHTML = '';
-        
-        const nombreParaEtiqueta = document.getElementById('nombreProd').value.trim() 
-            || (carrito[0] ? carrito[0].nombre : "PROMOCIÓN");
-        
+        const nombreParaEtiqueta = document.getElementById('nombreProd').value.trim() || (carrito[0] ? carrito[0].nombre : "PROMOCIÓN");
         document.getElementById('etiquetaProducto').innerText = nombreParaEtiqueta.toUpperCase();
 
         carrito.forEach((item) => {
@@ -614,282 +650,12 @@
         document.getElementById('seccionEtiqueta').scrollIntoView({ behavior: 'smooth' });
     }
 
-    function imprimirEtiqueta() {
-        window.print();
-    }
-
-    // ===== LÓGICA DE TABS =====
-    function switchTab(viewId, btnElement) {
-        document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
-        document.querySelectorAll('.nav-tab').forEach(el => el.classList.remove('active'));
-        
-        document.getElementById('view_' + viewId).classList.add('active');
-        btnElement.classList.add('active');
-
-        if(viewId === 'mayorista') {
-            verificarArchivoTiendanube();
-        }
-    }
-
-    // ===== LÓGICA MAYORISTA =====
-    let archivoMayoristaValido = false;
-    let listaMayoristaCache = [];
-
-    async function verificarArchivoTiendanube() {
-        const btn = document.getElementById('btnGenerarMayorista');
-        const txt = document.getElementById('txtBtnMayorista');
-        
-        if (!GOOGLE_WEB_APP_URL_MAYORISTA.startsWith("http")) {
-             txt.innerText = "🔴 Falta configurar URL Mayorista en JS";
-             btn.disabled = true;
-             return;
-        }
-
-        try {
-            txt.innerText = "⏳ Verificando archivo del día en Drive...";
-            btn.className = "status-btn status-red";
-            btn.disabled = true;
-
-            const respuesta = await fetch(GOOGLE_WEB_APP_URL_MAYORISTA + "?action=checkFile");
-            const datos = await respuesta.json();
-
-            if (datos.ok) {
-                btn.className = "status-btn status-green";
-                btn.disabled = false;
-                txt.innerText = "🟢 Archivo '" + datos.fileName + "' detectado. ¡Generar Lista Aquí!";
-                archivoMayoristaValido = true;
-                document.getElementById('dropZoneContainer').style.display = 'none';
-            } else {
-                btn.className = "status-btn status-red";
-                btn.disabled = true;
-                txt.innerText = "🔴 " + (datos.error || "No hay archivo de hoy");
-                archivoMayoristaValido = false;
-                document.getElementById('dropZoneContainer').style.display = 'block';
-            }
-        } catch (e) {
-            txt.innerText = "🔴 Error de conexión con Apps Script";
-            console.error(e);
-        }
-    }
-
-    async function ejecutarListaMayorista() {
-        if (!archivoMayoristaValido || !GOOGLE_WEB_APP_URL_MAYORISTA.startsWith("http")) return;
-
-        const btn = document.getElementById('btnGenerarMayorista');
-        const txt = document.getElementById('txtBtnMayorista');
-        const cardResultados = document.getElementById('cardResultadosMayorista');
-        const tbody = document.getElementById('cuerpoTablaMayorista');
-        
-        txt.innerText = "⏳ Leyendo, agrupando y filtrando filas de Tiendanube...";
-        btn.disabled = true;
-
-        try {
-            const respuesta = await fetch(GOOGLE_WEB_APP_URL_MAYORISTA + "?action=getListaMayorista");
-            const datos = await respuesta.json();
-
-            if(datos.error) {
-                alert("Error: " + datos.error);
-                txt.innerText = "🟢 Archivo detectado. ¡Generar Lista Aquí!";
-                btn.disabled = false;
-                return;
-            }
-
-            listaMayoristaCache = datos.data || [];
-            tbody.innerHTML = '';
-            
-            if(listaMayoristaCache.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;">No hay productos con "Mostrar en tienda = SI".</td></tr>';
-            } else {
-                listaMayoristaCache.forEach(prod => {
-                    const tr = document.createElement('tr');
-                    
-                    let precioHTML = "";
-                    let promoHTML = "-";
-                    
-                    if (prod.precio_promo > 0 && prod.precio_promo < prod.precio) {
-                        precioHTML = `<del style="color:#94a3b8">$${Number(prod.precio).toLocaleString('es-AR')}</del>`;
-                        promoHTML = `$${Number(prod.precio_promo).toLocaleString('es-AR')}`;
-                    } else {
-                        precioHTML = `$${Number(prod.precio).toLocaleString('es-AR')}`;
-                    }
-                    
-                    tr.innerHTML = `
-                        <td><strong>${prod.sku || "-"}</strong></td>
-                        <td>${prod.nombre}</td>
-                        <td>${precioHTML}</td>
-                        <td style="color:#16a34a; font-weight:bold;">${promoHTML}</td>
-                    `;
-                    tbody.appendChild(tr);
-                });
-            }
-
-            cardResultados.style.display = 'block';
-            txt.innerText = "🟢 Lista Generada Exitosamente";
-            btn.disabled = false;
-        } catch(e) {
-            alert("Error recuperando los datos del Sheet.");
-            txt.innerText = "🟢 Archivo detectado. ¡Generar Lista Aquí!";
-            btn.disabled = false;
-            console.error(e);
-        }
-    }
-
-    async function exportarPDFMayorista() {
-        if (listaMayoristaCache.length === 0) return;
-        
-        const btn = document.querySelector('#cardResultadosMayorista .btn-action');
-        const textoOriginal = btn.innerText;
-        btn.innerText = "⏳ Armando PDF...";
-        btn.disabled = true;
-
-        try {
-            const payload = {
-                action: "generarPDFMayorista",
-                data: listaMayoristaCache,
-                nombreArchivo: "Lista_Mayorista_" + new Date().toISOString().slice(0,10) + ".pdf"
-            };
-
-            const respuesta = await fetch(GOOGLE_WEB_APP_URL_MAYORISTA, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "text/plain;charset=utf-8"
-                },
-                redirect: "follow",
-                body: JSON.stringify(payload)
-            });
-
-            const jData = await respuesta.json();
-            
-            if(jData.base64) {
-               // Descargar o mostrar
-               const link = document.createElement('a');
-               link.href = "data:application/pdf;base64," + jData.base64;
-               link.download = jData.filename || 'Lista_Mayorista.pdf';
-               link.click();
-            } else if(jData.error) {
-               alert("Error al generar PDF: " + jData.error);
-            }
-        } catch(e) {
-            console.error(e);
-            alert("Error de red al crear PDF.");
-        } finally {
-            btn.innerText = textoOriginal;
-            btn.disabled = false;
-        }
-    }
+    function imprimirEtiqueta() { window.print(); }
 
     window.onload = function() {
         renderizarCarrito();
-        cargarCatalogo(); // <--- Llamada a cargar de Google Sheets al iniciar
+        cargarCatalogo(); 
     };
-
-    // ===== LÓGICA DRAG & DROP =====
-    const dropZone = document.getElementById('dropZone');
-    const fileInput = document.getElementById('fileInput');
-
-    ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
-        dropZone.addEventListener(eventName, preventDefaults, false);
-    });
-
-    function preventDefaults(e) {
-        e.preventDefault();
-        e.stopPropagation();
-    }
-
-    ['dragenter', 'dragover'].forEach(eventName => {
-        dropZone.addEventListener(eventName, () => dropZone.classList.add('dragover'), false);
-    });
-
-    ['dragleave', 'drop'].forEach(eventName => {
-        dropZone.addEventListener(eventName, () => dropZone.classList.remove('dragover'), false);
-    });
-
-    dropZone.addEventListener('drop', handleDrop, false);
-    fileInput.addEventListener('change', function() {
-        if(this.files.length) handleFiles(this.files);
-    });
-
-    function handleDrop(e) {
-        let dt = e.dataTransfer;
-        let files = dt.files;
-        handleFiles(files);
-    }
-
-    function handleFiles(files) {
-        if (!files.length) return;
-        const file = files[0];
-
-        // Validar 10MB (10 * 1024 * 1024 bytes)
-        if (file.size > 10485760) {
-            alert("⚠️ El archivo es demasiado pesado. El límite es 10MB.");
-            return;
-        }
-
-        subirArchivoADrive(file);
-    }
-
-    async function subirArchivoADrive(file) {
-        if (!GOOGLE_WEB_APP_URL_MAYORISTA.startsWith("http")) {
-            alert("🔴 Falta configurar URL Mayorista en JS");
-            return;
-        }
-
-        const dropZoneSpan = dropZone.querySelector('span');
-        const originalText = dropZoneSpan.innerText;
-        dropZoneSpan.innerText = "⏳ Subiendo archivo '" + file.name + "' a Drive...";
-        
-        try {
-            const base64 = await toBase64(file);
-            const base64Data = base64.split(',')[1]; // Remover prefijo "data:text/csv;base64,"
-
-            const payload = {
-                action: "uploadFile",
-                filename: file.name,
-                base64: base64Data
-            };
-
-            const respuesta = await fetch(GOOGLE_WEB_APP_URL_MAYORISTA, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "text/plain;charset=utf-8"
-                },
-                redirect: "follow",
-                body: JSON.stringify(payload)
-            });
-
-            const datos = await respuesta.json();
-
-            if (datos.ok) {
-                document.getElementById('dropZoneContainer').style.display = 'none';
-                
-                const btn = document.getElementById('btnGenerarMayorista');
-                const txt = document.getElementById('txtBtnMayorista');
-                
-                btn.className = "status-btn status-green";
-                btn.disabled = false;
-                txt.innerText = "🟢 Archivo subido. ¡Generar Lista Aquí!";
-                archivoMayoristaValido = true;
-                
-                alert("✅ Archivo subido correctamente a Google Drive. Ya puedes generar la tabla.");
-            } else {
-                alert("Error subiendo el archivo: " + datos.error);
-                dropZoneSpan.innerText = originalText;
-            }
-        } catch (error) {
-            console.error(error);
-            alert("Error de red al intentar subir el archivo.");
-            dropZoneSpan.innerText = originalText;
-        }
-    }
-
-    function toBase64(file) {
-        return new Promise((resolve, reject) => {
-            const reader = new FileReader();
-            reader.readAsDataURL(file);
-            reader.onload = () => resolve(reader.result);
-            reader.onerror = error => reject(error);
-        });
-    }
 </script>
 
 </body>

@@ -80,6 +80,25 @@
         .status-red:hover { background-color: #dc2626; }
         .status-green:hover { background-color: #16a34a; }
 
+        /* ===== ESTILOS DROP ZONE ===== */
+        .drop-zone {
+            margin-top: 15px;
+            border: 2px dashed #cbd5e1;
+            border-radius: 8px;
+            padding: 30px;
+            text-align: center;
+            background-color: #f8fafc;
+            color: var(--secondary);
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .drop-zone.dragover {
+            background-color: #e2e8f0;
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+        .file-input { display: none; }
+
         header {
             background: var(--primary);
             color: white;
@@ -374,6 +393,13 @@
                     <span id="txtBtnMayorista">🔴 Comprobando archivo de hoy...</span>
                 </button>
             </div>
+            
+            <div id="dropZoneContainer" style="display: none;">
+                <div id="dropZone" class="drop-zone" onclick="document.getElementById('fileInput').click()">
+                    <span>Alternativamente, arrastra tu archivo CSV aquí o haz clic para subirlo a Drive</span>
+                    <input type="file" id="fileInput" class="file-input" accept=".csv">
+                </div>
+            </div>
         </div>
 
         <div class="card" id="cardResultadosMayorista" style="display: none;">
@@ -632,11 +658,13 @@
                 btn.disabled = false;
                 txt.innerText = "🟢 Archivo '" + datos.fileName + "' detectado. ¡Generar Lista Aquí!";
                 archivoMayoristaValido = true;
+                document.getElementById('dropZoneContainer').style.display = 'none';
             } else {
                 btn.className = "status-btn status-red";
                 btn.disabled = true;
                 txt.innerText = "🔴 " + (datos.error || "No hay archivo de hoy");
                 archivoMayoristaValido = false;
+                document.getElementById('dropZoneContainer').style.display = 'block';
             }
         } catch (e) {
             txt.innerText = "🔴 Error de conexión con Apps Script";
@@ -739,6 +767,110 @@
         renderizarCarrito();
         cargarCatalogo(); // <--- Llamada a cargar de Google Sheets al iniciar
     };
+
+    // ===== LÓGICA DRAG & DROP =====
+    const dropZone = document.getElementById('dropZone');
+    const fileInput = document.getElementById('fileInput');
+
+    ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+        dropZone.addEventListener(eventName, preventDefaults, false);
+    });
+
+    function preventDefaults(e) {
+        e.preventDefault();
+        e.stopPropagation();
+    }
+
+    ['dragenter', 'dragover'].forEach(eventName => {
+        dropZone.addEventListener(eventName, () => dropZone.classList.add('dragover'), false);
+    });
+
+    ['dragleave', 'drop'].forEach(eventName => {
+        dropZone.addEventListener(eventName, () => dropZone.classList.remove('dragover'), false);
+    });
+
+    dropZone.addEventListener('drop', handleDrop, false);
+    fileInput.addEventListener('change', function() {
+        if(this.files.length) handleFiles(this.files);
+    });
+
+    function handleDrop(e) {
+        let dt = e.dataTransfer;
+        let files = dt.files;
+        handleFiles(files);
+    }
+
+    function handleFiles(files) {
+        if (!files.length) return;
+        const file = files[0];
+
+        // Validar 10MB (10 * 1024 * 1024 bytes)
+        if (file.size > 10485760) {
+            alert("⚠️ El archivo es demasiado pesado. El límite es 10MB.");
+            return;
+        }
+
+        subirArchivoADrive(file);
+    }
+
+    async function subirArchivoADrive(file) {
+        if (!GOOGLE_WEB_APP_URL_MAYORISTA.startsWith("http")) {
+            alert("🔴 Falta configurar URL Mayorista en JS");
+            return;
+        }
+
+        const dropZoneSpan = dropZone.querySelector('span');
+        const originalText = dropZoneSpan.innerText;
+        dropZoneSpan.innerText = "⏳ Subiendo archivo '" + file.name + "' a Drive...";
+        
+        try {
+            const base64 = await toBase64(file);
+            const base64Data = base64.split(',')[1]; // Remover prefijo "data:text/csv;base64,"
+
+            const payload = {
+                action: "uploadFile",
+                filename: file.name,
+                base64: base64Data
+            };
+
+            const respuesta = await fetch(GOOGLE_WEB_APP_URL_MAYORISTA, {
+                method: "POST",
+                body: JSON.stringify(payload)
+            });
+
+            const datos = await respuesta.json();
+
+            if (datos.ok) {
+                document.getElementById('dropZoneContainer').style.display = 'none';
+                
+                const btn = document.getElementById('btnGenerarMayorista');
+                const txt = document.getElementById('txtBtnMayorista');
+                
+                btn.className = "status-btn status-green";
+                btn.disabled = false;
+                txt.innerText = "🟢 Archivo subido. ¡Generar Lista Aquí!";
+                archivoMayoristaValido = true;
+                
+                alert("✅ Archivo subido correctamente a Google Drive. Ya puedes generar la tabla.");
+            } else {
+                alert("Error subiendo el archivo: " + datos.error);
+                dropZoneSpan.innerText = originalText;
+            }
+        } catch (error) {
+            console.error(error);
+            alert("Error de red al intentar subir el archivo.");
+            dropZoneSpan.innerText = originalText;
+        }
+    }
+
+    function toBase64(file) {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+            reader.onload = () => resolve(reader.result);
+            reader.onerror = error => reject(error);
+        });
+    }
 </script>
 
 </body>

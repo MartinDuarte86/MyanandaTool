@@ -77,6 +77,48 @@
             ring: 2px var(--accent);
         }
 
+        /* ===== ESTILOS AUTOCOMPLETADO ===== */
+        .autocomplete-container {
+            position: relative;
+            width: 100%;
+        }
+        .autocomplete-list {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            width: 100%;
+            max-height: 250px;
+            overflow-y: auto;
+            background: #fff;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+            z-index: 1000;
+            display: none;
+        }
+        .autocomplete-item {
+            padding: 12px;
+            cursor: pointer;
+            border-bottom: 1px solid #f1f5f9;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .autocomplete-item:hover {
+            background: #f8fafc;
+        }
+        .autocomplete-item:last-child { border-bottom: none; }
+        .prod-name { font-weight: 500; font-size: 0.9rem; }
+        .prod-price { color: #16a34a; font-size: 0.875rem; font-weight: 600; }
+        .loader-text {
+            font-size: 0.75rem;
+            color: #94a3b8;
+            display: inline-block;
+            margin-left: 8px;
+            font-style: italic;
+        }
+        /* ================================== */
+
         table {
             width: 100%;
             border-collapse: collapse;
@@ -111,7 +153,6 @@
         .btn-action { background: #e0f2fe; color: #0369a1; padding: 8px; font-weight: bold; }
         .btn-primary { background: var(--accent); color: white; width: 100%; margin-top: 10px; }
 
-        /* Estilos específicos para la Etiqueta */
         .seccion-etiqueta {
             display: none;
             margin-top: 20px;
@@ -151,22 +192,11 @@
             .product-header { grid-template-columns: 1fr; }
         }
 
-        /* Reglas de impresión para que solo salga la etiqueta física */
         @media print {
-            body * {
-                visibility: hidden;
-            }
-            .printable-label, .printable-label * {
-                visibility: visible;
-            }
+            body * { visibility: hidden; }
+            .printable-label, .printable-label * { visibility: visible; }
             .printable-label {
-                position: absolute;
-                left: 0;
-                top: 0;
-                width: 100%;
-                max-width: none;
-                border: none;
-                padding: 10px;
+                position: absolute; left: 0; top: 0; width: 100%; max-width: none; border: none; padding: 10px;
             }
             @page { margin: 0; }
         }
@@ -184,12 +214,18 @@
         <h2 style="margin-top: 0; font-size: 1.25rem;">1. Configurar Producto y Escalas</h2>
         <div class="product-header">
             <div>
-                <label>Nombre del Producto o Combo</label>
-                <input type="text" id="nombreProd" placeholder="Ej: Playera Estampada">
+                <label>
+                    Nombre del Producto o Combo
+                    <span id="cargaStatus" class="loader-text">Sincronizando con base de datos...</span>
+                </label>
+                <div class="autocomplete-container">
+                    <input type="text" id="nombreProd" placeholder="Ej: Esencia..." autocomplete="off" oninput="filtrarProductos()">
+                    <div id="listaAutocompletado" class="autocomplete-list"></div>
+                </div>
             </div>
             <div>
                 <label>Precio Unitario Base ($)</label>
-                <input type="number" id="precioBase" value="1200">
+                <input type="number" id="precioBase" value="0">
             </div>
         </div>
 
@@ -223,7 +259,6 @@
         <button class="btn btn-add" onclick="agregarFila()">+ Añadir nueva escala</button>
     </div>
 
-    <!-- Sección de Carrito / Tabla de Acopio -->
     <div class="card" id="seccionAcopio">
         <h2 style="margin-top: 0; font-size: 1.25rem;">2. Items para la Etiqueta</h2>
         <p style="font-size: 0.875rem; color: var(--secondary); margin-bottom: 10px;">
@@ -251,7 +286,6 @@
         <button class="btn btn-primary" onclick="generarEtiqueta()">Generar Etiqueta Final</button>
     </div>
 
-    <!-- Etiqueta generada (Oculta por defecto) -->
     <div id="seccionEtiqueta" class="seccion-etiqueta">
         <h3 style="margin-top: 0;">Vista Previa de Etiqueta</h3>
         <div class="printable-label" id="printableArea">
@@ -270,6 +304,80 @@
 
 <script>
     let carrito = [];
+    let catalogoProductos = []; // Almacena todos los productos
+
+    // ===== CONFIGURACIÓN DEL BACKEND =====
+    // Reemplaza esto con tu URL de la Web App en Apps Script
+    const GOOGLE_WEB_APP_URL = "LA_URL_DE_TU_WEB_APP_IRA_AQUI"; 
+    // =====================================
+
+    async function cargarCatalogo() {
+        const spanCarga = document.getElementById('cargaStatus');
+        if (!GOOGLE_WEB_APP_URL.startsWith("http")) {
+            spanCarga.innerText = "(Falta URL segura de Google Web App)";
+            spanCarga.style.color = '#ca8a04';
+            return; // Esperando configuración
+        }
+
+        try {
+            const respuesta = await fetch(GOOGLE_WEB_APP_URL);
+            const datos = await respuesta.json(); // Se espera parsear base
+            catalogoProductos = datos;
+            spanCarga.innerText = `(${datos.length} productos conectados)`;
+            spanCarga.style.color = '#16a34a';
+        } catch (error) {
+            spanCarga.innerText = "(Error de conexión con Sheets)";
+            spanCarga.style.color = '#991b1b';
+            console.error('Error al cargar catálogo', error);
+        }
+    }
+
+    function filtrarProductos() {
+        const input = document.getElementById('nombreProd');
+        const lista = document.getElementById('listaAutocompletado');
+        const filtro = input.value.toLowerCase().trim();
+
+        lista.innerHTML = '';
+
+        if (!filtro) {
+            lista.style.display = 'none';
+            return;
+        }
+
+        // Buscar coincidencias
+        const resultados = catalogoProductos.filter(prod => 
+            prod.nombre.toLowerCase().includes(filtro)
+        );
+
+        if (resultados.length > 0) {
+            // Mostrar los primeros coincientes (máx. 15 por rendimiento)
+            resultados.slice(0, 15).forEach(prod => {
+                const div = document.createElement('div');
+                div.className = 'autocomplete-item';
+                div.innerHTML = `
+                    <span class="prod-name">${prod.nombre}</span>
+                    <span class="prod-price">$${Number(prod.precio).toLocaleString('es-AR')}</span>
+                `;
+                div.onclick = function() {
+                    input.value = prod.nombre;
+                    // Actualiza el precio automáticamente al hacer click
+                    document.getElementById('precioBase').value = prod.precio; 
+                    lista.style.display = 'none';
+                };
+                lista.appendChild(div);
+            });
+            lista.style.display = 'block';
+        } else {
+            lista.style.display = 'none';
+        }
+    }
+
+    // Ocultar desplegable al clickear fuera
+    document.addEventListener('click', function(e) {
+        if (e.target.id !== 'nombreProd') {
+            document.getElementById('listaAutocompletado').style.display = 'none';
+        }
+    });
 
     function agregarFila() {
         const tbody = document.getElementById('cuerpoTabla');
@@ -347,11 +455,9 @@
             tbody.appendChild(tr);
         });
         
-        // Ocultar etiqueta si se están haciendo cambios
         document.getElementById('seccionEtiqueta').style.display = 'none';
     }
 
-    // LÓGICA DE LA ETIQUETA
     function generarEtiqueta() {
         if (carrito.length === 0) {
             alert("Agrega al menos un ítem a la etiqueta antes de generar.");
@@ -361,7 +467,6 @@
         const itemsCont = document.getElementById('etiquetaItems');
         itemsCont.innerHTML = '';
         
-        // Determinar título de etiqueta (nombre del primer producto, o el valor actual del input)
         const nombreParaEtiqueta = document.getElementById('nombreProd').value.trim() 
             || (carrito[0] ? carrito[0].nombre : "PROMOCIÓN");
         
@@ -386,6 +491,7 @@
 
     window.onload = function() {
         renderizarCarrito();
+        cargarCatalogo(); // <--- Llamada a cargar de Google Sheets al iniciar
     };
 </script>
 

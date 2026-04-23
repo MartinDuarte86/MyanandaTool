@@ -28,6 +28,58 @@
             margin: 0 auto;
         }
 
+        /* ===== ESTILOS TABS ===== */
+        .nav-tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #e2e8f0;
+            padding-bottom: 5px;
+            overflow-x: auto;
+        }
+        .nav-tab {
+            padding: 10px 20px;
+            cursor: pointer;
+            border-radius: 8px 8px 0 0;
+            font-weight: 600;
+            color: var(--secondary);
+            background: transparent;
+            border: none;
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+        .nav-tab:hover {
+            color: var(--text);
+            background: #e2e8f0;
+        }
+        .nav-tab.active {
+            color: var(--primary);
+            border-bottom: 3px solid var(--primary);
+            margin-bottom: -7px;
+        }
+        .view-section { display: none; }
+        .view-section.active { display: block; }
+        
+        /* ESTILOS BOTON ESTADO (MAYORISTA) */
+        .status-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 12px 24px;
+            border-radius: 8px;
+            border: none;
+            font-weight: bold;
+            font-size: 1rem;
+            color: white;
+            cursor: not-allowed;
+            transition: 0.3s;
+            width: 100%;
+        }
+        .status-red { background-color: #ef4444; }
+        .status-green { background-color: #22c55e; cursor: pointer; }
+        .status-red:hover { background-color: #dc2626; }
+        .status-green:hover { background-color: #16a34a; }
+
         header {
             background: var(--primary);
             color: white;
@@ -206,9 +258,17 @@
 
 <div class="container">
     <header>
-        <h1 id="displayTitulo">Cotizador de promociones</h1>
-        <p>Generador de escalas de precios y creación de etiquetas</p>
+        <h1 id="displayTitulo">Data Architecture Solutions</h1>
+        <p>Herramientas de automatización y gestión B2B</p>
     </header>
+
+    <div class="nav-tabs">
+        <button class="nav-tab active" onclick="switchTab('cotizador', this)">Cotizador de promociones</button>
+        <button class="nav-tab" onclick="switchTab('mayorista', this)">Generar lista de precio mayorista</button>
+    </div>
+
+    <!-- VISTA: COTIZADOR DE PROMOCIONES -->
+    <div id="view_cotizador" class="view-section active">
 
     <div class="card">
         <h2 style="margin-top: 0; font-size: 1.25rem;">1. Configurar Producto y Escalas</h2>
@@ -300,6 +360,46 @@
         <button class="btn btn-primary" style="max-width: 200px; margin-top: 20px;" onclick="imprimirEtiqueta()">🖨️ Imprimir Etiqueta</button>
     </div>
 
+    </div> <!-- FIN VISTA COTIZADOR -->
+
+    <!-- VISTA: MAYORISTA -->
+    <div id="view_mayorista" class="view-section">
+        <div class="card">
+            <h2 style="margin-top: 0; font-size: 1.25rem;">1. Búsqueda de Listado Tiendanube</h2>
+            <p style="font-size: 0.875rem; color: var(--secondary);">
+                Este módulo busca automáticamente el archivo CSV de exportación de Tiendanube en Google Drive. Verifica que el archivo haya sido **creado el día de hoy**.
+            </p>
+            <div style="margin-top: 20px; margin-bottom: 20px;">
+                <button id="btnGenerarMayorista" class="status-btn status-red" onclick="ejecutarListaMayorista()" disabled>
+                    <span id="txtBtnMayorista">🔴 Comprobando archivo de hoy...</span>
+                </button>
+            </div>
+        </div>
+
+        <div class="card" id="cardResultadosMayorista" style="display: none;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                <h2 style="margin-top: 0; font-size: 1.25rem;">Resultados Mayoristas</h2>
+                <button class="btn btn-action" onclick="exportarPDFMayorista()">🖨️ Exportar a PDF</button>
+            </div>
+            
+            <div style="overflow-x: auto; max-height: 400px; overflow-y: auto;">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>SKU</th>
+                            <th>Nombre</th>
+                            <th>Precio</th>
+                            <th>Precio Promocional</th>
+                        </tr>
+                    </thead>
+                    <tbody id="cuerpoTablaMayorista">
+                        <!-- Llenado por JS -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div> <!-- FIN VISTA MAYORISTA -->
+
 </div>
 
 <script>
@@ -309,6 +409,9 @@
     // ===== CONFIGURACIÓN DEL BACKEND =====
     // Reemplaza esto con tu URL de la Web App en Apps Script
     const GOOGLE_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwyCHODaWdHQudMIUpkJI8oH8v08edo_XP7pOvvp7JkL320WKFXLbKs1BcGEblD3lkj/exec"; 
+    
+    // URL PARA EL ESTE NUEVO MÓDULO MAYORISTA:
+    const GOOGLE_WEB_APP_URL_MAYORISTA = "https://script.google.com/macros/s/AKfycbx3yPZ6Tm4EBHUL_QC-6R39vTecF2dZXi-eMc5itgzU6UZRVGT9hMNN_CNSwxqx-i9t/exec";
     // =====================================
 
     async function cargarCatalogo() {
@@ -487,6 +590,149 @@
 
     function imprimirEtiqueta() {
         window.print();
+    }
+
+    // ===== LÓGICA DE TABS =====
+    function switchTab(viewId, btnElement) {
+        document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
+        document.querySelectorAll('.nav-tab').forEach(el => el.classList.remove('active'));
+        
+        document.getElementById('view_' + viewId).classList.add('active');
+        btnElement.classList.add('active');
+
+        if(viewId === 'mayorista') {
+            verificarArchivoTiendanube();
+        }
+    }
+
+    // ===== LÓGICA MAYORISTA =====
+    let archivoMayoristaValido = false;
+    let listaMayoristaCache = [];
+
+    async function verificarArchivoTiendanube() {
+        const btn = document.getElementById('btnGenerarMayorista');
+        const txt = document.getElementById('txtBtnMayorista');
+        
+        if (!GOOGLE_WEB_APP_URL_MAYORISTA.startsWith("http")) {
+             txt.innerText = "🔴 Falta configurar URL Mayorista en JS";
+             btn.disabled = true;
+             return;
+        }
+
+        try {
+            txt.innerText = "⏳ Verificando archivo del día en Drive...";
+            btn.className = "status-btn status-red";
+            btn.disabled = true;
+
+            const respuesta = await fetch(GOOGLE_WEB_APP_URL_MAYORISTA + "?action=checkFile");
+            const datos = await respuesta.json();
+
+            if (datos.ok) {
+                btn.className = "status-btn status-green";
+                btn.disabled = false;
+                txt.innerText = "🟢 Archivo '" + datos.fileName + "' detectado. ¡Generar Lista Aquí!";
+                archivoMayoristaValido = true;
+            } else {
+                btn.className = "status-btn status-red";
+                btn.disabled = true;
+                txt.innerText = "🔴 " + (datos.error || "No hay archivo de hoy");
+                archivoMayoristaValido = false;
+            }
+        } catch (e) {
+            txt.innerText = "🔴 Error de conexión con Apps Script";
+            console.error(e);
+        }
+    }
+
+    async function ejecutarListaMayorista() {
+        if (!archivoMayoristaValido || !GOOGLE_WEB_APP_URL_MAYORISTA.startsWith("http")) return;
+
+        const btn = document.getElementById('btnGenerarMayorista');
+        const txt = document.getElementById('txtBtnMayorista');
+        const cardResultados = document.getElementById('cardResultadosMayorista');
+        const tbody = document.getElementById('cuerpoTablaMayorista');
+        
+        txt.innerText = "⏳ Leyendo, agrupando y filtrando filas de Tiendanube...";
+        btn.disabled = true;
+
+        try {
+            const respuesta = await fetch(GOOGLE_WEB_APP_URL_MAYORISTA + "?action=getListaMayorista");
+            const datos = await respuesta.json();
+
+            if(datos.error) {
+                alert("Error: " + datos.error);
+                txt.innerText = "🟢 Archivo detectado. ¡Generar Lista Aquí!";
+                btn.disabled = false;
+                return;
+            }
+
+            listaMayoristaCache = datos.data || [];
+            tbody.innerHTML = '';
+            
+            if(listaMayoristaCache.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;">No hay productos con "Mostrar en tienda = SI".</td></tr>';
+            } else {
+                listaMayoristaCache.forEach(prod => {
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td><strong>${prod.sku || "-"}</strong></td>
+                        <td>${prod.nombre}</td>
+                        <td>$${Number(prod.precio).toLocaleString('es-AR')}</td>
+                        <td style="color:#16a34a; font-weight:bold;">$${Number(prod.precio_promo).toLocaleString('es-AR')}</td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            }
+
+            cardResultados.style.display = 'block';
+            txt.innerText = "🟢 Lista Generada Exitosamente";
+            btn.disabled = false;
+        } catch(e) {
+            alert("Error recuperando los datos del Sheet.");
+            txt.innerText = "🟢 Archivo detectado. ¡Generar Lista Aquí!";
+            btn.disabled = false;
+            console.error(e);
+        }
+    }
+
+    async function exportarPDFMayorista() {
+        if (listaMayoristaCache.length === 0) return;
+        
+        const btn = document.querySelector('#cardResultadosMayorista .btn-action');
+        const textoOriginal = btn.innerText;
+        btn.innerText = "⏳ Armando PDF...";
+        btn.disabled = true;
+
+        try {
+            const payload = {
+                action: "generarPDFMayorista",
+                data: listaMayoristaCache,
+                nombreArchivo: "Lista_Mayorista_" + new Date().toISOString().slice(0,10) + ".pdf"
+            };
+
+            const respuesta = await fetch(GOOGLE_WEB_APP_URL_MAYORISTA, {
+                method: "POST",
+                body: JSON.stringify(payload)
+            });
+
+            const jData = await respuesta.json();
+            
+            if(jData.base64) {
+               // Descargar o mostrar
+               const link = document.createElement('a');
+               link.href = "data:application/pdf;base64," + jData.base64;
+               link.download = jData.filename || 'Lista_Mayorista.pdf';
+               link.click();
+            } else if(jData.error) {
+               alert("Error al generar PDF: " + jData.error);
+            }
+        } catch(e) {
+            console.error(e);
+            alert("Error de red al crear PDF.");
+        } finally {
+            btn.innerText = textoOriginal;
+            btn.disabled = false;
+        }
     }
 
     window.onload = function() {

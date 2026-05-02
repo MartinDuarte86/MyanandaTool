@@ -310,8 +310,36 @@
         </div>
     </header>
 
+    <div class="card" id="seccionBuscador">
+        <h2 style="margin-top: 0; font-size: 1.25rem;">1. Buscador Avanzado</h2>
+        <div class="product-header">
+            <div>
+                <label>Buscar por Producto (Nombre)</label>
+                <input type="text" id="buscadorNombre" placeholder="Ej: Tibetano..." oninput="filtrarBuscadorAvanzado()">
+            </div>
+            <div>
+                <label>Buscar por Aroma (Valor Prop 1)</label>
+                <input type="text" id="buscadorAroma" placeholder="Ej: Vainilla..." oninput="filtrarBuscadorAvanzado()">
+            </div>
+        </div>
+        <div style="max-height: 300px; overflow-y: auto; border: 1px solid #e2e8f0; border-radius: 8px;">
+            <table style="margin: 0;">
+                <thead style="position: sticky; top: 0; background: #f8fafc; z-index: 10;">
+                    <tr>
+                        <th>Nombre del Producto</th>
+                        <th>Aroma (Valor Prop 1)</th>
+                        <th>Precio</th>
+                    </tr>
+                </thead>
+                <tbody id="cuerpoBuscador">
+                    <tr><td colspan="3" style="text-align:center; color:#94a3b8;">Utiliza los buscadores arriba para encontrar productos y variantes.</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
     <div class="card">
-        <h2 style="margin-top: 0; font-size: 1.25rem;">1. Configurar Producto y Escalas</h2>
+        <h2 style="margin-top: 0; font-size: 1.25rem;">2. Configurar Producto y Escalas</h2>
         <div class="product-header">
             <div>
                 <label>Nombre del Producto o Combo</label>
@@ -357,7 +385,7 @@
     </div>
 
     <div class="card" id="seccionAcopio">
-        <h2 style="margin-top: 0; font-size: 1.25rem;">2. Items para la Etiqueta</h2>
+        <h2 style="margin-top: 0; font-size: 1.25rem;">3. Items para la Etiqueta</h2>
         <p style="font-size: 0.875rem; color: var(--secondary); margin-bottom: 10px;">
             Presiona el símbolo ➕ en la tabla de arriba para cargar los productos o combos aquí.
         </p>
@@ -526,6 +554,58 @@
     }
     // ======================================
 
+
+    function filtrarBuscadorAvanzado() {
+        const inputNombre = document.getElementById('buscadorNombre').value.toLowerCase().trim();
+        const inputAroma = document.getElementById('buscadorAroma').value.toLowerCase().trim();
+        const tbody = document.getElementById('cuerpoBuscador');
+        
+        tbody.innerHTML = '';
+        
+        if (!inputNombre && !inputAroma) {
+            tbody.innerHTML = '<tr><td colspan="3" style="text-align:center; color:#94a3b8;">Utiliza los buscadores arriba para encontrar productos y variantes.</td></tr>';
+            return;
+        }
+
+        let resultados = catalogoProductos;
+
+        if (inputNombre) {
+            resultados = resultados.filter(prod => prod.nombre.toLowerCase().includes(inputNombre));
+        }
+        if (inputAroma) {
+            // Se asume que el aroma puede ser nulo o vacío
+            resultados = resultados.filter(prod => prod.aroma && prod.aroma.toLowerCase().includes(inputAroma));
+        }
+
+        if (resultados.length > 0) {
+            // Límite de 100 para no colapsar la memoria del navegador
+            resultados.slice(0, 100).forEach(prod => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td style="font-weight: 500;">${prod.nombre}</td>
+                    <td style="color: #64748b;">${prod.aroma || '-'}</td>
+                    <td style="color: #16a34a; font-weight: 600;">$${Number(prod.precio).toLocaleString('es-AR')}</td>
+                `;
+                // Al tocar una fila del buscador, la autocompleta en el panel de configuración
+                tr.style.cursor = "pointer";
+                tr.onclick = function() {
+                    const nombreFinal = prod.nombre + (prod.aroma ? " - " + prod.aroma : "");
+                    document.getElementById('nombreProd').value = nombreFinal;
+                    document.getElementById('precioBase').value = prod.precio;
+                    
+                    // Hacer scroll suave hacia la zona de configuración
+                    document.getElementById('nombreProd').scrollIntoView({ behavior: 'smooth', block: 'center' });
+                };
+                
+                tr.addEventListener('mouseover', () => tr.style.background = '#f1f5f9');
+                tr.addEventListener('mouseout', () => tr.style.background = 'transparent');
+                
+                tbody.appendChild(tr);
+            });
+        } else {
+            tbody.innerHTML = '<tr><td colspan="3" style="text-align:center; color:#94a3b8;">No se encontraron resultados.</td></tr>';
+        }
+    }
 
     function filtrarProductos() {
         const input = document.getElementById('nombreProd');

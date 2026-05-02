@@ -537,16 +537,40 @@
         btn.disabled = true;
 
         try {
-            const respuesta = await fetch(GOOGLE_WEB_APP_URL + "?action=tiendanube_api");
+            // 1. Obtener los datos formateados para mayorista
+            const respuesta = await fetch(GOOGLE_WEB_APP_URL + "?action=getListaMayorista");
             const resultado = await respuesta.json();
             
-            if(resultado.success) {
-                alert("¡Lista mayorista generada y sincronizada con éxito!");
+            if (!resultado.ok || !resultado.data) {
+                alert("Operación denegada: " + (resultado.error || "No se encontraron datos"));
+                return;
+            }
+            
+            btn.innerText = "Generando PDF...";
+            
+            // 2. Enviar los datos para generar el PDF
+            const pdfRespuesta = await fetch(GOOGLE_WEB_APP_URL, {
+                method: "POST",
+                body: JSON.stringify({
+                    action: "generarPDFMayorista",
+                    data: resultado.data,
+                    nombreArchivo: "Lista_Mayorista.pdf"
+                })
+            });
+            const pdfResultado = await pdfRespuesta.json();
+            
+            if(pdfResultado.ok && pdfResultado.base64) {
+                // Descargar el PDF generado
+                const link = document.createElement('a');
+                link.href = "data:application/pdf;base64," + pdfResultado.base64;
+                link.download = pdfResultado.filename || "Lista_Mayorista.pdf";
+                link.click();
+                alert("¡Lista mayorista generada con éxito!");
             } else {
-                alert("Operación denegada en backend: " + resultado.error);
+                alert("Error al generar el PDF: " + pdfResultado.error);
             }
         } catch(e) {
-            alert("Error de red al intentar invocar la API Mayorista.");
+            alert("Error de red al intentar generar la lista Mayorista.");
         } finally {
             btn.innerText = "Generar Lista Mayorista (Tiendanube)";
             btn.disabled = false;
